@@ -5,10 +5,16 @@ export interface Position {
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
-export type GameState = 'idle' | 'playing' | 'paused' | 'gameOver';
-
-export interface GameConfig {
-  gridSize: number;
-  initialSpeed: number;
-  speedIncrement: number;
+export interface GameState {
+  snake: Position[];
+  food: Position;
+  direction: Direction;
+  nextDirection: Direction;
+  gameOver: boolean;
+  paused: boolean;
+  score: number;
+  highScore: number;
 }
+
+export const GRID_SIZE = 20;
+export const INITIAL_SPEED = 150;
