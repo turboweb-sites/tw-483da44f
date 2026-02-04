@@ -1,81 +1,67 @@
-import { GameState, GRID_SIZE } from '../types/game';
+import { Position } from '../types/game';
 
 interface GameBoardProps {
-  gameState: GameState;
+  snake: Position[];
+  food: Position;
+  isGameOver: boolean;
+  isPaused: boolean;
 }
 
-export default function GameBoard({ gameState }: GameBoardProps) {
-  const cellSize = 20;
-  const boardSize = GRID_SIZE * cellSize;
-  
-  const renderCell = (x: number, y: number) => {
-    const isSnakeHead = gameState.snake[0].x === x && gameState.snake[0].y === y;
-    const isSnakeBody = gameState.snake.some((segment, index) => 
-      index > 0 && segment.x === x && segment.y === y
-    );
-    const isFood = gameState.food.x === x && gameState.food.y === y;
-    
-    return (
-      <div
-        key={`${x}-${y}`}
-        className={`absolute transition-all duration-100 ${
-          isSnakeHead 
-            ? 'bg-green-400 rounded-sm z-20' 
-            : isSnakeBody 
-            ? 'bg-green-500 rounded-sm z-10' 
-            : isFood 
-            ? 'bg-red-500 rounded-full animate-pulse z-30' 
-            : ''
-        }`}
-        style={{
-          left: x * cellSize,
-          top: y * cellSize,
-          width: cellSize - 1,
-          height: cellSize - 1,
-        }}
-      />
-    );
-  };
-  
+export default function GameBoard({ snake, food, isGameOver, isPaused }: GameBoardProps) {
+  const GRID_SIZE = 20;
   const cells = [];
-  for (let y = 0; y < GRID_SIZE; y++) {
-    for (let x = 0; x < GRID_SIZE; x++) {
-      cells.push(renderCell(x, y));
+
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      const isSnakeHead = snake[0]?.x === col && snake[0]?.y === row;
+      const isSnakeBody = snake.slice(1).some(segment => segment.x === col && segment.y === row);
+      const isFood = food.x === col && food.y === row;
+
+      let cellClass = 'relative border border-gray-700 bg-gray-800';
+      
+      if (isSnakeHead) {
+        cellClass += ' snake-head';
+      } else if (isSnakeBody) {
+        cellClass += ' snake-segment';
+      } else if (isFood) {
+        cellClass += ' food';
+      }
+
+      cells.push(
+        <div
+          key={`${row}-${col}`}
+          className={`game-cell ${cellClass}`}
+        />
+      );
     }
   }
-  
+
   return (
-    <div 
-      className="relative bg-gray-900 rounded-lg mx-auto border-4 border-gray-700"
-      style={{ width: boardSize, height: boardSize }}
-    >
-      {/* Grid pattern */}
-      <div className="absolute inset-0 opacity-10">
-        {Array.from({ length: GRID_SIZE }).map((_, i) => (
-          <div key={`h-${i}`}>
-            <div 
-              className="absolute bg-gray-600"
-              style={{
-                left: 0,
-                top: i * cellSize,
-                width: '100%',
-                height: 1,
-              }}
-            />
-            <div 
-              className="absolute bg-gray-600"
-              style={{
-                left: i * cellSize,
-                top: 0,
-                width: 1,
-                height: '100%',
-              }}
-            />
-          </div>
-        ))}
+    <div className="relative mb-6">
+      <div className="grid grid-cols-20 gap-0 aspect-square max-w-xl mx-auto rounded-lg overflow-hidden border-2 border-gray-700">
+        {cells}
       </div>
-      
-      {cells}
+
+      {/* Game Over Overlay */}
+      {isGameOver && (
+        <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center rounded-lg">
+          <div className="text-center animate-slide-in">
+            <h2 className="text-4xl font-bold text-red-500 mb-2">Game Over!</h2>
+            <p className="text-xl text-white">Score: {snake.length - 1}</p>
+            <p className="text-gray-400 mt-2">Press "New Game" to play again</p>
+          </div>
+        </div>
+      )}
+
+      {/* Pause Overlay */}
+      {isPaused && !isGameOver && (
+        <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center rounded-lg">
+          <div className="text-center animate-pulse">
+            <h2 className="text-4xl font-bold text-yellow-500">Paused</h2>
+            <p className="text-gray-400 mt-2">Press Resume or Spacebar to continue</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
